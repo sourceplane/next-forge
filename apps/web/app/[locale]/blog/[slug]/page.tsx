@@ -13,10 +13,9 @@ import { notFound } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { env } from "@/env";
 
-const protocol = env.VERCEL_PROJECT_PRODUCTION_URL?.startsWith("https")
-  ? "https"
-  : "http";
-const url = new URL(`${protocol}://${env.VERCEL_PROJECT_PRODUCTION_URL}`);
+// The site's own origin, set per environment by the build (upstream read
+// Vercel's VERCEL_PROJECT_PRODUCTION_URL).
+const url = new URL(env.NEXT_PUBLIC_WEB_URL);
 
 interface BlogPostProperties {
   readonly params: Promise<{

@@ -1,5 +1,6 @@
 import merge from "lodash.merge";
 import type { Metadata } from "next";
+import { SITE_NAME } from "./site";
 
 type MetadataGenerator = Omit<Metadata, "description" | "title"> & {
   title: string;
@@ -7,15 +8,13 @@ type MetadataGenerator = Omit<Metadata, "description" | "title"> & {
   image?: string;
 };
 
-const applicationName = "next-forge";
-const author: Metadata["authors"] = {
-  name: "Vercel",
-  url: "https://vercel.com/",
-};
-const publisher = "Vercel";
-const twitterHandle = "@vercel";
-const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-const productionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+// The product is the author and the publisher (upstream: Vercel, @vercel).
+const applicationName = SITE_NAME;
+const author: Metadata["authors"] = { name: SITE_NAME };
+const publisher = SITE_NAME;
+// The app's own origin, which the build sets per environment (upstream read
+// Vercel's VERCEL_PROJECT_PRODUCTION_URL).
+const productionUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
 export const createMetadata = ({
   title,
@@ -28,9 +27,7 @@ export const createMetadata = ({
     title: parsedTitle,
     description,
     applicationName,
-    metadataBase: productionUrl
-      ? new URL(`${protocol}://${productionUrl}`)
-      : undefined,
+    metadataBase: productionUrl ? new URL(productionUrl) : undefined,
     authors: [author],
     creator: author.name,
     formatDetection: {
@@ -51,7 +48,6 @@ export const createMetadata = ({
     publisher,
     twitter: {
       card: "summary_large_image",
-      creator: twitterHandle,
     },
   };
 

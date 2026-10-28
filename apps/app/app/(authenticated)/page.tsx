@@ -7,8 +7,9 @@ import { env } from "@/env";
 import { AvatarStack } from "./components/avatar-stack";
 import { Cursors } from "./components/cursors";
 import { Header } from "./components/header";
+import { SITE_NAME } from "@repo/seo/site";
 
-const title = "Acme Inc";
+const title = SITE_NAME;
 const description = "My application.";
 
 const CollaborationProvider = dynamic(() =>

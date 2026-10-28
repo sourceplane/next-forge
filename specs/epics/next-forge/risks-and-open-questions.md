@@ -1,14 +1,16 @@
 # next-forge — risks and open questions
 
-## NF-A — Worker size (OPEN until NF1 measures it)
+## NF-A — Worker size (RESOLVED in NF1: app 2,869 KiB, web 2,602 KiB, api 1,315 KiB)
 
 Workers Free takes a Worker up to 3 MiB compressed. next-forge's apps import
 Clerk, Liveblocks, Knock, Svix, Stripe, PostHog and the design system; the
 app Worker is the one at risk. Mitigations, in order: build with webpack (the
 smaller Worker, as ai-emoji-generator measured), keep vendor SDKs that only
 run in the browser out of the server bundle, replace `@sentry/nextjs` and
-`@logtail/next` (both instrument Node) with `fetch` posts. Every dry run's
-size is recorded in IMPLEMENTATION-STATUS.md.
+`@logtail/next` (both instrument Node) with `fetch` posts. Two more were
+needed: Arcjet's 3.6 MB WebAssembly analyzer came out of the app (1.1 MB
+compressed), and BaseHub's all-language Shiki out of the site (1.7 MB). The
+app has about 200 KiB of headroom on Workers Free; Workers Paid takes 10 MiB.
 
 ## NF-B — Clerk is not optional upstream (DECIDED: a sample mode)
 

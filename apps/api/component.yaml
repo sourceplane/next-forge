@@ -108,13 +108,13 @@ spec:
     # first step); dev, which no root applies to and which only verifies,
     # renders from the committed fixture. The build is given the three
     # Workers' origins for this environment (the NEXT_PUBLIC_*_URL each app
-    # links the others by; APP_URL, WEB_URL, API_URL override them for a
-    # custom domain) and none of the server secrets; then each server secret
+    # links the others by, and NEXT_PUBLIC_SITE_URL, its own, for its
+    # metadata; APP_URL, WEB_URL, API_URL override them for a custom domain) and none of the server secrets; then each server secret
     # the environment has goes to the Worker with `wrangler secret bulk`
     # (tooling/wire/worker-secrets.mjs, the values over stdin). Only the deploy
     # lane holds a Cloudflare credential, so a verify lane builds the same and
     # pushes nothing.
-    buildCommand: node ../../tooling/wire/live.mjs --template wrangler.template.jsonc --out wrangler.jsonc --components cloudflare-hyperdrive --env "${ORUN_ENVIRONMENT}" --fixture wiring.fixture.json --fixture-envs dev && env -u CLERK_SECRET_KEY -u CLERK_WEBHOOK_SECRET -u STRIPE_SECRET_KEY -u STRIPE_WEBHOOK_SECRET -u BETTERSTACK_API_KEY -u BETTERSTACK_URL NEXT_PUBLIC_APP_URL="${APP_URL:-https://next-forge-app-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" NEXT_PUBLIC_WEB_URL="${WEB_URL:-https://next-forge-web-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" NEXT_PUBLIC_API_URL="${API_URL:-https://next-forge-api-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" pnpm exec turbo run build --filter=@app/api && node ../../tooling/wire/worker-secrets.mjs --secret CLERK_SECRET_KEY --secret CLERK_WEBHOOK_SECRET --secret STRIPE_SECRET_KEY --secret STRIPE_WEBHOOK_SECRET --secret BETTERSTACK_API_KEY --secret BETTERSTACK_URL --worker "next-forge-api-${ORUN_ENVIRONMENT}" --config wrangler.jsonc
+    buildCommand: node ../../tooling/wire/live.mjs --template wrangler.template.jsonc --out wrangler.jsonc --components cloudflare-hyperdrive --env "${ORUN_ENVIRONMENT}" --fixture wiring.fixture.json --fixture-envs dev && env -u CLERK_SECRET_KEY -u CLERK_WEBHOOK_SECRET -u STRIPE_SECRET_KEY -u STRIPE_WEBHOOK_SECRET -u BETTERSTACK_API_KEY -u BETTERSTACK_URL NEXT_PUBLIC_APP_URL="${APP_URL:-https://next-forge-app-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" NEXT_PUBLIC_WEB_URL="${WEB_URL:-https://next-forge-web-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" NEXT_PUBLIC_API_URL="${API_URL:-https://next-forge-api-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" NEXT_PUBLIC_SITE_URL="${API_URL:-https://next-forge-api-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" pnpm exec turbo run build --filter=@app/api && node ../../tooling/wire/worker-secrets.mjs --secret CLERK_SECRET_KEY --secret CLERK_WEBHOOK_SECRET --secret STRIPE_SECRET_KEY --secret STRIPE_WEBHOOK_SECRET --secret BETTERSTACK_API_KEY --secret BETTERSTACK_URL --worker "next-forge-api-${ORUN_ENVIRONMENT}" --config wrangler.jsonc
 
     # Smoke: /health answers OK, and /cron/keep-alive — the route the daily
     # Cron Trigger runs — answers OK, which only this Worker can, by writing
