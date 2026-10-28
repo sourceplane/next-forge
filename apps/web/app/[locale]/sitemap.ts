@@ -1,14 +1,12 @@
-import fs from "node:fs";
 import { blog, legal } from "@repo/cms";
 import type { MetadataRoute } from "next";
 import { env } from "@/env";
 
-const appFolders = fs.readdirSync("app", { withFileTypes: true });
-const pages = appFolders
-  .filter((file) => file.isDirectory())
-  .filter((folder) => !folder.name.startsWith("_"))
-  .filter((folder) => !folder.name.startsWith("("))
-  .map((folder) => folder.name);
+// The site's own pages, written down. Upstream listed the folders of `app`
+// with node:fs when the sitemap renders, and a Worker has no `app` folder at
+// runtime (the sitemap renders per request under `[locale]`), so that read
+// failed every request.
+const pages = ["blog", "contact", "pricing"];
 const blogs = (await blog.getPosts()).map((post) => post._slug);
 const legals = (await legal.getPosts()).map((post) => post._slug);
 // The site's own origin, set per environment by the build (upstream read

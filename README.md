@@ -1,29 +1,80 @@
 # next-forge
 
 Vercel's [next-forge](https://github.com/vercel/next-forge) — a
-production-grade Turborepo for SaaS: the **app** (a dashboard behind
-Clerk, with search, a webhooks portal, live cursors and notifications), the
-**marketing site** (home, pricing, a blog, legal pages and a contact form, in
-six languages) and the **API** (Stripe and Clerk webhooks, health, a daily
-keep-alive), over twenty shared `@repo/*` packages — running on **Cloudflare
-Workers + Static Assets**, one Worker per app through
-[`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare), with the
-database in a **Supabase** project's Postgres reached through **Cloudflare
+production-grade SaaS Turborepo: the app (a dashboard behind Clerk, with
+search, a webhooks portal, live cursors and notifications), the marketing
+site (home, pricing, a blog, legal pages and a contact form, in six
+languages) and the API (Stripe and Clerk webhooks, health, a daily
+keep-alive) over twenty shared packages — running on **Cloudflare Workers +
+Static Assets**, one Worker per app through
+[`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare), with its
+database a **Supabase** project's Postgres reached through **Cloudflare
 Hyperdrive**, files in **R2**, the contact form's rate limit in **Workers KV**
-and the keep-alive as a **Cron Trigger**. Terraform provisions all four per
-environment and Orun's `db-migrate` applies the schema, on every merge to
-`main`.
+and the keep-alive as a **Cron Trigger**, all four provisioned by Terraform
+through [Orun](https://github.com/sourceplane/orun) and the schema applied by
+Orun's `db-migrate` — and packaged as an **Orun baseline**: one command takes
+a new product from nothing to live on stage and prod, in its own repository,
+under its own name, in ONE landing.
 
-Every SaaS the template wires — Clerk, Stripe, BaseHub, Resend, PostHog,
-Google Analytics, Sentry, BetterStack, Liveblocks, Knock, Svix, OpenAI — is
-optional. With none of them the three Workers deploy and serve: the app runs
-as a sample user under a "connect Clerk" notice, the blog and the legal pages
-show sample entries, and each page that needs a service says which one.
+The template's code is the code. What the port changes is what the Workers
+runtime, Workers Free's 3 MiB per Worker and a fresh, unattended deployment
+force: Prisma's client becomes the same `database.page` calls over postgres.js
+through Hyperdrive, Vercel Blob becomes R2, Upstash becomes KV, Vercel Cron a
+Cron Trigger, the Sentry and BetterStack SDKs Workers Logs, and every SaaS —
+Clerk included, which upstream requires — becomes optional, so the three
+Workers deploy and serve before their owner has signed up for any of them.
+Vercel's next-forge is MIT-licensed ([LICENSE](LICENSE)). See
+[`specs/epics/next-forge`](specs/epics/next-forge/README.md) for the design,
+the milestones and the as-built status, including every departure.
 
-next-forge is MIT-licensed by Vercel ([LICENSE](LICENSE)); this port keeps
-its apps, pages, routes and package boundaries.
+## Instantiating a product
 
-## What is here
+```bash
+git clone --depth 1 --branch <baseline-tag> https://github.com/sourceplane/next-forge
+cd next-forge
+orun new --blueprint repo-blueprint.yaml --out ~/products/acme-forge --run-hooks --resume \
+  --set reponame=acme-forge --set productname="Acme Forge" \
+  --set githuborg=acme-inc --set subdomain=<workers-dev-subdomain>
+```
+
+Or, once the platform's registry lists it, from the Orun console (Baselines →
+`next-forge` → Build). Two phases: **`01-product`** creates the repository,
+mints the six brokered credentials (Cloudflare and Supabase) and lands the
+whole product as one pull request, whose convergence on `main` provisions and
+deploys it per environment in a fixed order —
+
+```
+supabase ──▶ cloudflare-hyperdrive ──▶ db-migrate ──▶ app, api
+cloudflare-r2 ──▶ app            cloudflare-kv ──▶ web
+```
+
+— each edge `mode: enforced` on a push to main and advisory on a pull
+request; then **`02-docs`** records the live deployment from probed facts.
+**[BOOTSTRAP.md](BOOTSTRAP.md)** is the operator guide;
+[docs/phases/](docs/phases/README.md) has a page per phase.
+
+The new repository receives the **product only** — the three apps, the
+packages, the Terraform roots, the migrations, the tests, its CI, its
+tooling, a README of its own and its operating contract — renamed throughout
+to the product's name, repository, Workers, Supabase project, Hyperdrive
+config, bucket and namespace. None of this repository's machinery ships.
+**The SaaS keys are the owner's to store afterwards** (the product's README,
+"Connecting a service"): no platform brokers them, so the card asks for none.
+
+| What makes it a baseline | Where |
+|---|---|
+| The console card (inputs, secrets, programme) | `blueprint.yaml` |
+| The build document (modules, phases, hooks) | `repo-blueprint.yaml` |
+| This tree's identity, the product's README and the bootstrap's task contracts | `.baseline/` |
+| The rename engine (product-name seam: `packages/seo/site.ts`) | `tooling/rebrand/rebrand.mjs` |
+| The bootstrap's helpers (deferrals, redeploy marker, work-tree strip) | `tooling/bootstrap/` |
+| The component docs generator | `tooling/catalog/gen-component-docs.py` |
+| The deployment-record renderer | `hooks/render-deployment-docs.sh` |
+| The product's context pack | `ai/context/` |
+| The baseline's tests: contract, wiring, leak, offline bootstrap and plans, end to end | `testing/`, `.github/workflows/baseline.yml` |
+| Cutting a `baseline-vN` tag | `.github/workflows/tag.yml` |
+
+## What is here (the product)
 
 | Surface | Where |
 |---|---|
@@ -33,7 +84,7 @@ its apps, pages, routes and package boundaries.
 | The API: health, the keep-alive and its Cron Trigger (`worker.ts`), the Stripe and Clerk webhooks | `apps/api` → Worker `next-forge-api-<env>` |
 | The shared packages (auth, database, design system, CMS, email, payments, …) | `packages/*` (`@repo/*`) |
 | The database client (Prisma's `database.page` calls over postgres.js through Hyperdrive) | `packages/database` |
-| The schema as migrations, and their runner | `packages/db` (`@app/db`), run by `infra/db-migrate` |
+| The schema as migrations, and their runner | `packages/db` (`@saas/db`), run by `infra/db-migrate` |
 | The Supabase project, the Hyperdrive config, the R2 bucket, the KV namespace | `infra/terraform/{supabase,cloudflare-hyperdrive,cloudflare-r2,cloudflare-kv}` |
 | Each Worker's build and deploy contract | `apps/*/next.config.ts`, `open-next.config.ts`, `wrangler.template.jsonc` + `wiring.fixture.json` → `wrangler.jsonc`, `component.yaml` |
 | Tests | `tests/app`, `tests/web`, `tests/api`, `tests/db` (vitest) |
@@ -49,105 +100,8 @@ pnpm test
 pnpm build              # next build --webpack + opennextjs-cloudflare build → apps/*/.open-next
 ```
 
-The build needs no database and no SaaS account. Each app's
-`.env.production` gives a local build stage's workers.dev origins to link
-the three apps by; a deployed build sets its own environment's.
-
-## Running it locally
-
-You need a Postgres on `localhost:54322` — the Supabase CLI's default
-(`supabase start`) — or any Postgres whose URL you put in `DATABASE_URL`.
-
-1. **Schema.** Apply the migrations once (CI applies the same files to the
-   real databases):
-
-   ```bash
-   for f in packages/db/src/migrations/*/up.sql; do psql "postgres://postgres:postgres@localhost:54322/postgres" -f "$f"; done
-   ```
-
-2. **Environment.** Every key in `apps/*/.env.example` is optional. For
-   `next dev`, copy the app's `.env.example` to `.env.local` and fill in what
-   you have; under `wrangler dev` the server-only keys go in `.dev.vars`.
-
-3. **Run.** Next's dev servers, which reach the Workers' bindings through
-   wrangler's platform proxy (`HYPERDRIVE` points at `localhost:54322`):
-
-   ```bash
-   pnpm --filter @app/app dev   # http://localhost:3000
-   pnpm --filter @app/web dev   # http://localhost:3001
-   pnpm --filter @app/api dev   # http://localhost:3002
-   ```
-
-   or a built Worker under `wrangler dev`:
-
-   ```bash
-   pnpm build
-   pnpm --filter @app/web preview
-   ```
-
-   Workers AI has no local mode, so the app's `AI` binding asks for
-   `wrangler login` the first time something calls a model; nothing in the
-   template does until you do.
-
-## How it deploys
-
-Merges to `main` converge through [Orun](https://github.com/sourceplane/orun):
-`.github/workflows/ci.yml` plans the changed components and runs each lane
-against the workspace in `intent.yaml`. Per environment the order is
-enforced — **the Supabase project, then the Hyperdrive config over its
-database, then the migrations, then the app and the API**, with the R2
-bucket before the app and the KV namespace before the marketing site —
-because each reads what the one before it published. `stage` deploys first
-and `prod` once stage has converged on the same commit; `dev` only verifies.
-Every deploy is smoke-tested over HTTP: the app's `/api/health` (its
-database), the site's `/api/health` (its KV namespace) and the API's
-`/cron/keep-alive` (its database, as the Cron Trigger runs it).
-
-The pipeline holds one credential, GitHub's own `GITHUB_TOKEN`. The
-Cloudflare tokens and account id and the Supabase access token and org id
-are brokered per run from the workspace's connections; the Supabase
-project's credentials and the Hyperdrive id, bucket name and namespace id
-are published by the Terraform applies as Orun secrets. Every SaaS key is an
-Orun secret you store when you have one.
-
-**Deploy by hand.** Orunbase's **Deploy** button on a component, or **Run
-workflow** on the CI workflow in GitHub's Actions tab (on `main`), runs
-`ci.yml` for the environment and components you pick, and each one deploys
-exactly as a merge would deploy it. Leave the component blank to redeploy
-every component in that environment, with nothing changed: after storing a
-secret, say. A component with nothing to run in that environment (a test
-suite in `prod`) is left out with a notice.
-
-## Connecting a service
-
-Each key is this repository's Orun secret, per deployed environment, under
-the name the template already reads:
-
-```bash
-orun secrets set CLERK_SECRET_KEY --env prod                    # prompts for the value
-orun secrets set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY --env prod
-```
-
-Then redeploy the Worker that reads it (**Deploy by hand**, above): a secret
-reaches a Worker when it deploys. Public keys (`NEXT_PUBLIC_*`) are inlined
-into that Worker's build; server keys are kept out of the build and handed
-to the Worker as Worker secrets (`wrangler secret bulk`, values over stdin),
-so they are in no bundle and no log.
-
-| Service | Keys | Worker(s) | Without it |
-|---|---|---|---|
-| Clerk | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`; `CLERK_WEBHOOK_SECRET` for `/webhooks/auth` | app, web, api | the app runs as a sample user; sign-in says what to set |
-| BaseHub | `BASEHUB_TOKEN` | web | sample blog posts and legal pages under a notice |
-| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (endpoint `https://next-forge-api-<env>.<subdomain>.workers.dev/webhooks/payments`) | api | the webhook answers "Not configured" |
-| Resend | `RESEND_TOKEN`, `RESEND_FROM` | web, app | the contact form says email is not configured |
-| Svix | `SVIX_TOKEN` | app | the webhooks page says what to connect |
-| Liveblocks | `LIVEBLOCKS_SECRET` | app | no live cursors or avatar stack |
-| Knock | `NEXT_PUBLIC_KNOCK_API_KEY`, `NEXT_PUBLIC_KNOCK_FEED_CHANNEL_ID`, `KNOCK_SECRET_API_KEY` | app | no notifications bell |
-| PostHog | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | all | no product analytics; the beta flag stays off |
-| Google Analytics | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | app, web | no GA tag |
-| Sentry | `NEXT_PUBLIC_SENTRY_DSN` | all | errors are in Workers Logs only |
-| BetterStack | `BETTERSTACK_API_KEY`, `BETTERSTACK_URL` | all | no status badge in the footer |
-| OpenAI | `OPENAI_API_KEY` | app | `@repo/ai`'s models are Workers AI's |
+Running it locally, deploying, connecting each service and the custom-domain
+step are the product's README, [`.baseline/product/README.md`](.baseline/product/README.md).
 
 ## How it maps to Vercel
 
@@ -173,21 +127,10 @@ so they are in no bundle and no log.
 | bun, Biome | pnpm 10, Node 22, ESLint 9 |
 | "Deploy with Vercel" | `orun new --blueprint repo-blueprint.yaml` — a new repository, branded, provisioned, deployed |
 
-## Worker size
+## CI
 
-Workers Free deploys a Worker up to 3 MiB compressed, Workers Paid up to 10
-MiB. Measured with `wrangler deploy --dry-run`: the app 2,869 KiB, the
-marketing site 2,602 KiB, the API 1,315 KiB. Adding heavy server-side
-dependencies to the app can push it past the free limit; Workers Paid lifts
-it.
-
-## Custom domain
-
-The Workers answer on workers.dev from their first deploy. To serve them on
-your domain, attach it to each Worker in Cloudflare (Workers & Pages →
-the Worker → Settings → Domains & Routes), then set `APP_URL`, `WEB_URL` and
-`API_URL` under each environment's `env:` in `intent.yaml` to the origins
-the apps link each other by — they override the workers.dev defaults in each
-`component.yaml`'s build — and merge. `BASE_DOMAIN` beside them records the
-domain; the repository was born with the placeholder
-`next-forge.example.com`.
+| Workflow | What it runs | Ships to a product |
+|---|---|---|
+| `ci.yml` | the Orun pipeline, and the only workflow a product carries: `orun plan --changed`, then one job per lane. A pull request runs the verify lanes (the three Workers built and dry-deployed per environment, the four Terraform roots planned, the migrations planned, the test suites), except the bootstrap's own landings (`orun/BASE-*`), where `plan` alone runs — the landing was checked in the build box; a merge applies, migrates and deploys stage → prod. It plans nothing while `intent.yaml` names the placeholder workspace `ws_CHANGE_ME`, as this repository does. A manual run (Orunbase's Deploy button, or Run workflow on `main`) plans the environment and components it names under the push-to-main trigger, so they deploy as a merge deploys them | yes |
+| `baseline.yml` | the baseline's own tiers: contract tests and the component docs; the blueprint read by the pinned orun, the leak gate, the offline bootstrap and the product's own plans; the product installed, checked and built, migrated into a local Postgres, its three Workers dry-deployed and served | no |
+| `tag.yml` | cuts a `baseline-vN` tag (manual) | no |

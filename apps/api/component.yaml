@@ -9,6 +9,11 @@ spec:
   owner: platform
   # `product`, not `api`: a domain and a component share one name space in the
   # catalog, and a domain named after a component hides it.
+  docs:
+    overview: docs/overview.md
+    pages:
+      - { path: docs/architecture.md, role: architecture, title: Architecture }
+      - { path: docs/runbook.md, role: runbook, title: Runbook }
   domain: product
   path: apps/api
   # Its own lane per environment: the Next.js build is the longest job in the

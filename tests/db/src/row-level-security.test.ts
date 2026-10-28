@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { manifest } from "@app/db/manifest";
+import { manifest } from "@saas/db/manifest";
 
 // Supabase's Data API (PostgREST) serves the `public` schema to anyone holding
 // the project's anon key. Migration 020 enables row-level security, with no

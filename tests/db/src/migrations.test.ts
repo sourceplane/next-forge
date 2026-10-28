@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
-import { manifest } from "@app/db/manifest";
-import { buildPlan, runMigrations } from "@app/db/runner";
+import { manifest } from "@saas/db/manifest";
+import { buildPlan, runMigrations } from "@saas/db/runner";
 
 const migrationsDir = path.resolve(__dirname, "../../../packages/db/src/migrations");
 

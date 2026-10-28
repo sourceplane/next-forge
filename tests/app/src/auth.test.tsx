@@ -1,7 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// next-forge requires Clerk; a product built from the baseline goes live
+// Vercel's next-forge requires Clerk; a product built from the baseline goes live
 // before its owner has a Clerk application. @repo/auth decides once whether
 // Clerk is connected (both keys set) and, when it is not, gives the apps a
 // sample identity, runs the proxy's callback without Clerk's middleware and

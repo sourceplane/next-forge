@@ -35,7 +35,7 @@
   // @repo/ai's default models: Workers AI, no key.
   "ai": { "binding": "AI" }
   // Secrets are never vars. Every SaaS key (Clerk, Liveblocks, Knock, Svix,
-  // Arcjet, PostHog, Sentry, BetterStack, OpenAI) is optional: an Orun secret
+  // PostHog, Sentry, BetterStack, OpenAI) is optional: an Orun secret
   // per environment that the deploy hands to this Worker as a Worker secret
   // (component.yaml). Locally they go in .dev.vars.
 }

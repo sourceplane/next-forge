@@ -7,6 +7,11 @@ spec:
   type: turbo-package
   lifecycle: production
   owner: platform
+  docs:
+    overview: docs/overview.md
+    pages:
+      - { path: docs/architecture.md, role: architecture, title: Architecture }
+      - { path: docs/runbook.md, role: runbook, title: Runbook }
   domain: data
   subscribe:
     environments:

@@ -5,13 +5,37 @@
 | NF0 — the spec | ✅ | NF-1 (#1) |
 | NF1 — the apps on Workers | ✅ | NF-2 (#2) |
 | NF2 — the data plane | ✅ | NF-3 (#3) |
-| NF3 — ready to instantiate | ✅ | NF-4 |
-| NF4 — a baseline | — | |
+| NF3 — ready to instantiate | ✅ | NF-4 (#4) |
+| NF4 — a baseline | ✅ | NF-5 (#5) |
 
-Measured (`wrangler deploy --dry-run`, gzip): app 2,869 KiB, web 2,602 KiB,
+Measured (`wrangler deploy --dry-run`, gzip): app 2,873 KiB, web 2,602 KiB,
 api 1,315 KiB — under Workers Free's 3 MiB. Proven offline: every route of
 the three Workers under `wrangler dev` with no key set, the app's and the
 API's against a local Postgres, the Cron Trigger running the keep-alive.
+
+## The baseline (NF4)
+
+`blueprint.yaml` (the console's card: six brokered credentials, two
+milestones) and `repo-blueprint.yaml` (51 modules, two phases: `01-product`
+places all of them and lands them as one pull request, about 19 minutes;
+`02-docs` records the deployment, about 1). The rename seam is
+`packages/seo/site.ts`; the slug `next-forge` is also upstream's name, so the
+rebrand protects upstream's GitHub repository, next-forge.com and the words
+"Vercel's next-forge" and renames every other use. Every component's
+`docs/` is generated (`tooling/catalog/gen-component-docs.py`). The
+migrations' package is `@saas/db`, not an `@app/*` name: stack-tectonic's
+`db-migrate` composition builds its runner with `--filter=@saas/db` (the e2e
+tier caught the NF2 name).
+
+Tests, all offline: the contract tier (`manifest`, `phases`, `coverage`,
+`rebrand`, `retouch`, `bootstrap-defer`, `wire`, and the docs check); the
+blueprint tier (the pinned orun reads the document, the leak gate, the
+offline bootstrap and the product's own plans); the product tier (the
+landing's install, typecheck, lint, test and build; the migrations through a
+Management API stand-in; each app's stage lane in its staged tree; the three
+Workers served with no SaaS key; row-level security as Supabase's roles see
+it). A live bootstrap against a workspace is the one thing not run here
+(risk NF-F).
 
 ## Departures from the upstream template
 
@@ -41,3 +65,4 @@ Everything not listed here is the template as it is upstream at `f189de7`.
 | 20 | `VERCEL_PROJECT_PRODUCTION_URL` → each app's own origin (`NEXT_PUBLIC_SITE_URL`, and the site's `NEXT_PUBLIC_WEB_URL` for robots, the sitemap and the blog's JSON-LD), set per environment by the build | not on Vercel |
 | 21 | Missing workspace dependencies declared (`@repo/email` in app and api, `@repo/auth` in web); upstream's shadcn `chart` and `resizable` updated for recharts 3 and react-resizable-panels 4; Knock's client built with `{ apiKey }` | pnpm resolves strictly; upstream's own typecheck fails at its lockfile's versions |
 | 22 | `apps/docs` (Mintlify), `apps/email` (react-email's preview server), `apps/storybook`, `apps/studio`, the apps' `vercel.json` and `scripts/skip-ci.js` not carried; upstream's three app tests moved to `tests/{app,api}` | not Workers / Vercel's |
+| 23 | The sitemap's pages are written down (`blog`, `contact`, `pricing`) instead of read from `app` with `node:fs` when it renders | a Worker has no `app` folder at runtime; upstream's read also listed `[locale]` itself as a page |

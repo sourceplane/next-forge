@@ -1,7 +1,7 @@
 import type { MigrationManifest } from "./types.js";
 
 // Every migration the runner applies, in order, with the sha256 of its file.
-// `pnpm --filter @app/db run manifest:check` verifies the checksums;
+// `pnpm --filter @saas/db run manifest:check` verifies the checksums;
 // `manifest:fix` rewrites them after a migration file changes (only ever
 // before that migration has been applied anywhere — an applied migration's
 // checksum is immutable).

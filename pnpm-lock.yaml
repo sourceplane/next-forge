@@ -1223,9 +1223,6 @@ importers:
 
   tests/db:
     devDependencies:
-      '@app/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@app/eslint-config':
         specifier: workspace:*
         version: link:../../tooling/eslint
@@ -1235,6 +1232,9 @@ importers:
       '@electric-sql/pglite':
         specifier: 0.5.8
         version: 0.5.8
+      '@saas/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@types/node':
         specifier: 25.3.5
         version: 25.3.5

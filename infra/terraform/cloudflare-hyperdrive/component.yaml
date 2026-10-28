@@ -12,6 +12,11 @@ spec:
   type: terraform
   lifecycle: production
   owner: platform
+  docs:
+    overview: docs/overview.md
+    pages:
+      - { path: docs/architecture.md, role: architecture, title: Architecture }
+      - { path: docs/runbook.md, role: runbook, title: Runbook }
   domain: infra
 
   # Hyperdrive's origin is the Supabase project's Postgres, whose ref and

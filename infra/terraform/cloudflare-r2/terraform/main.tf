@@ -86,10 +86,10 @@ variable "terraformVersion" {
 
 # --- The bucket the uploads live in ---
 #
-# One R2 bucket per environment, bound by apps/web as BLOB: the upload route
-# writes the images it accepts, the delivery route streams them back. It
-# stands in for Vercel Blob. The bucket is private — nothing is served from it
-# but through the Worker.
+# One R2 bucket per environment, bound by apps/app as STORAGE: @repo/storage
+# puts, gets, lists and deletes through the binding. It stands in for Vercel
+# Blob. The bucket is private — nothing is served from it but through the
+# Worker.
 
 locals {
   # Built on var.repo (the product's repository slug) so the name is unique per
