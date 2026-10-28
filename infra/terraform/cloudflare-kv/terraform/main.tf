@@ -88,11 +88,11 @@ variable "terraformVersion" {
   default = "1.15.3"
 }
 
-# --- The KV namespace the page's counter lives in ---
+# --- The KV namespace the rate limiter's windows live in ---
 #
-# Bound by apps/web as VIEWS. Keys are the app's (`views`); any expiry is
-# per-PUT (`expirationTtl`), owned by the Worker — no Terraform-side TTL knob
-# exists for KV namespaces themselves.
+# Bound by apps/web as RATE_LIMIT (@repo/rate-limit's sliding window). Keys
+# are the site's; every expiry is per-PUT (`expirationTtl`), owned by the
+# Worker — no Terraform-side TTL knob exists for KV namespaces themselves.
 
 locals {
   # Built on var.repo (the product's repository slug) so the title is unique per

@@ -1,0 +1,9 @@
+{
+  "_comment": "THIS TREE'S OWN IDENTITY \u2014 the FROM side of every rebrand. tooling/rebrand/rebrand.mjs reads it to know what to rename AWAY from; a product's identity is the --values file, which is the TO side. Change a value here only together with the tree: these strings must be what the tree actually contains, or the rename silently misses and the product ships carrying this baseline's name. `slug` is ALSO upstream's own name (Vercel's next-forge): where the tree names the template \u2014 its GitHub repository, next-forge.com, the words \"Vercel's next-forge\" \u2014 the rebrand protects it, and everywhere else the slug is this product's (the Workers, the secret project, the Terraform `repo`). `productName` is the SITE_NAME seam in packages/seo/site.ts (upstream's placeholder brand, \"Acme Inc\"); `domain` and `subdomain` are placeholders, because this baseline has never deployed under a name of its own; `githubOwner` is the owner in this repository's source link.",
+  "slug": "next-forge",
+  "pascal": "NextForge",
+  "productName": "Acme Inc",
+  "domain": "next-forge.example.com",
+  "subdomain": "your-workers-subdomain",
+  "githubOwner": "sourceplane"
+}

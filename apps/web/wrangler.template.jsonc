@@ -26,7 +26,7 @@
       "id": "@@wiring(cloudflare-kv/__ENV__:app_kv_id)@@"
     }
   ]
-  // Secrets are never vars. BaseHub's token, Resend's, Arcjet's, PostHog,
+  // Secrets are never vars. BaseHub's token, Resend's, PostHog's,
   // Sentry and BetterStack are optional: Orun secrets the deploy hands to
   // this Worker (component.yaml). Locally, .dev.vars.
 }

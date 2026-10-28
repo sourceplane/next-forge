@@ -1,6 +1,6 @@
 // Whether this deployment has a Clerk application to authenticate against.
 //
-// next-forge requires Clerk: its proxies run Clerk's middleware and its
+// Vercel's next-forge requires Clerk: its proxies run Clerk's middleware and its
 // layouts read the signed-in user on every request. A product built from the
 // baseline goes live before its owner has a Clerk application, so @repo/auth
 // asks this one question and, with no Clerk, gives the apps a sample user

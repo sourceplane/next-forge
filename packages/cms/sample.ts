@@ -101,7 +101,7 @@ export const samplePosts = [
         id: "connect-basehub",
         title: "Connecting BaseHub",
         paragraphs: [
-          "Create a repository from next-forge's BaseHub template, make a read token, and store it as this product's BASEHUB_TOKEN secret. The next deploy reads your posts and pages instead of these.",
+          "Create a repository from the BaseHub template of Vercel's next-forge, make a read token, and store it as this product's BASEHUB_TOKEN secret. The next deploy reads your posts and pages instead of these.",
         ],
       },
     ]),

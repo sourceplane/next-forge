@@ -25,5 +25,6 @@ spec:
     - tests
   doneWhen:
     - blueprint.yaml and repo-blueprint.yaml agree (testing/manifest.test.sh)
-    - Baseline CI is green: contract tests, the docs check, the blueprint job and the site job
+    - the rebrand renames this baseline's identity and keeps upstream's mentions (testing/rebrand.test.sh)
+    - Baseline CI is green: contract tests, the docs check, the blueprint job and the product job
   gates: []

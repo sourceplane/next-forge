@@ -1,6 +1,6 @@
 # next-forge — risks and open questions
 
-## NF-A — Worker size (RESOLVED in NF1: app 2,869 KiB, web 2,602 KiB, api 1,315 KiB)
+## NF-A — Worker size (RESOLVED in NF1: app 2,873 KiB, web 2,602 KiB, api 1,315 KiB)
 
 Workers Free takes a Worker up to 3 MiB compressed. next-forge's apps import
 Clerk, Liveblocks, Knock, Svix, Stripe, PostHog and the design system; the

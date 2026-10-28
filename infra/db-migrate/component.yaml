@@ -13,6 +13,11 @@ spec:
   type: db-migrate
   lifecycle: production
   owner: platform
+  docs:
+    overview: docs/overview.md
+    pages:
+      - { path: docs/architecture.md, role: architecture, title: Architecture }
+      - { path: docs/runbook.md, role: runbook, title: Runbook }
   domain: infra
 
   # Migrations read the Supabase connection from the orun secrets the
@@ -20,9 +25,12 @@ spec:
   # the Hyperdrive config over that database. Nothing here needs Hyperdrive;
   # the edge is there because a migration is the one step of a convergence a
   # re-run cannot take back, so it runs only once everything the Worker needs
-  # besides the schema exists, immediately before the Worker deploys. The
-  # order on main is supabase → cloudflare-hyperdrive → db-migrate → web.
-  # Enforced on main, advisory on a pull request (which applies nothing).
+  # besides the schema exists, immediately before the Workers deploy. The
+  # order on main is supabase → cloudflare-hyperdrive → db-migrate → app and
+  # api. Enforced on main, advisory on a pull request (which applies nothing).
+  #
+  # The composition builds the runner by package name (`turbo run build
+  # --filter=@saas/db`), so packages/db keeps that name, not an @app/* one.
   dependsOn:
     - component: db
     - component: supabase
