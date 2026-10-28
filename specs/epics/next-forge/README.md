@@ -8,7 +8,7 @@ The port keeps the apps, their pages, their routes and the package boundaries. I
 
 | Field | Value |
 |-------|-------|
-| Status | In progress |
+| Status | NF0–NF3 shipped (#1–#4); NF4 (the baseline) in progress. Applies, migrations and live deploys proven only by a live bootstrap (risk NF-F) |
 | Cluster | **NF** (NF0–NF4) |
 | Owner(s) | `apps/app` · `apps/web` · `apps/api` · `packages/*` · `tests/*` · `infra/terraform/{supabase,cloudflare-hyperdrive,cloudflare-r2,cloudflare-kv}` · `packages/db` + `infra/db-migrate` |
 | Builds on | `saas-starter` (Supabase + Hyperdrive roots, db-migrate through the Management API), `blob-starter` (the R2 root), `kv-redis-starter` (the KV root), `cron-starter` (a Cron Trigger on an OpenNext Worker), `cms-sanity` (an unconnected CMS sample mode) |
