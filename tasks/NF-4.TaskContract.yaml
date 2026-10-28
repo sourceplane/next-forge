@@ -1,0 +1,15 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: NF-4
+  title: "Ready to instantiate"
+spec:
+  goal: The README and the as-built status take a reader from clone to deploy
+  affects:
+    - README.md
+    - specs/epics/next-forge
+    - apps
+  doneWhen:
+    - the README says how to run, test, preview and deploy, and maps every replaced piece
+    - IMPLEMENTATION-STATUS.md lists every departure from upstream
+  gates: []
