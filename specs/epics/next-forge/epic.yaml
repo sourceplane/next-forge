@@ -1,0 +1,40 @@
+# The epic's declaration. metadata.name equals the directory name; metadata.key
+# is the task-key prefix this epic reserves (NF → NF-1, NF-2, …). Owner, target
+# date and health are the platform's — never written here.
+apiVersion: orun.io/v1
+kind: Epic
+metadata:
+  name: next-forge
+  key: NF
+spec:
+  title: "Vercel's next-forge on Cloudflare Workers with Supabase"
+  summary: "Vercel's next-forge — a production SaaS monorepo: the app (a Clerk-authenticated dashboard with collaboration, notifications, webhooks and search), the marketing site (home, pricing, blog, legal pages and a contact form, in several languages) and the API (Stripe and Clerk webhooks, a keep-alive cron, health), over twenty shared packages — runs on Cloudflare Workers + Static Assets, one OpenNext Worker per app, with the database in a Supabase project's Postgres reached through Hyperdrive, files in R2, the contact form's rate limit in Workers KV and the keep-alive as a Cron Trigger, inside the Cirrus baseline's repository conventions. Every SaaS the template wires (Clerk, Stripe, BaseHub, Resend, PostHog, Sentry, BetterStack, Arcjet, Liveblocks, Knock, Svix) is an optional Orun secret: each app builds, deploys and serves with none of them, and says on the page what to connect."
+  state: started
+  milestones:
+    - name: "NF0 — the spec"
+      exitCriteria:
+        - "intent, CI, tooling, the spec index, this doc set and the task contracts are on main"
+      tasks: [NF-1]
+    - name: "NF1 — the apps on Workers"
+      exitCriteria:
+        - "apps/app, apps/web and apps/api are the upstream apps, each built by @opennextjs/cloudflare into its own Worker with Static Assets, and each under Workers Free's 3 MiB compressed limit"
+        - "the upstream packages build and type-check under pnpm and Node 22; Prisma's client is replaced by the same `database.page` calls over postgres.js through the Hyperdrive binding"
+        - "with no SaaS key set, every app renders: the app as a sample user under a connect-Clerk notice, the marketing site with sample blog posts, the API's health and keep-alive"
+        - "`pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` are green"
+      tasks: [NF-2]
+    - name: "NF2 — the data plane from Terraform, the schema through db-migrate"
+      exitCriteria:
+        - "infra/terraform/supabase, cloudflare-hyperdrive, cloudflare-r2 and cloudflare-kv provision stage and prod and publish what the Workers render their config from"
+        - "packages/db holds the schema as checksummed migrations, applied by infra/db-migrate through Supabase's Management API before the Workers deploy"
+      tasks: [NF-3]
+    - name: "NF3 — ready to instantiate"
+      exitCriteria:
+        - "the README says how to run, test, preview and deploy it, and maps every Vercel and SaaS piece to what replaces it"
+        - "the as-built status records every departure from the upstream template"
+      tasks: [NF-4]
+    - name: "NF4 — a baseline"
+      exitCriteria:
+        - "blueprint.yaml (the console card) and repo-blueprint.yaml (the build) take a new product from nothing to live on stage and prod in ONE landing (01-product) and a hook-only record (02-docs), on orun v2.88.0's fast shape"
+        - "a product built from it carries the product only, renamed throughout to its own name, repository, Workers, Supabase projects, Hyperdrive configs, bucket and namespace"
+        - "Baseline CI is green: contract tests, generated component docs, the blueprint read by the pinned orun, the leak gate, the offline bootstrap with the product's own plan, and the end-to-end tier (the migrations applied to a real Postgres, all three Workers built, dry-deployed and served)"
+      tasks: [NF-5]

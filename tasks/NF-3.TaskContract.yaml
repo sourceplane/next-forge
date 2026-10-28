@@ -1,0 +1,17 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: NF-3
+  title: "The data plane from Terraform, the schema through db-migrate"
+spec:
+  goal: Supabase, Hyperdrive, R2 and KV are provisioned per environment by Terraform and the schema is applied by db-migrate before the Workers deploy
+  affects:
+    - infra
+    - packages/db
+    - tests/db
+    - apps
+  doneWhen:
+    - terraform validate passes for the supabase, cloudflare-hyperdrive, cloudflare-r2 and cloudflare-kv roots
+    - the migrations apply to a real Postgres, and a second apply applies nothing
+    - the Workers that bind a root wait for its apply on a merge to main
+  gates: []

@@ -1,0 +1,33 @@
+node_modules/
+dist/
+.next/
+.open-next/
+.wrangler/
+.turbo/
+coverage/
+*.tsbuildinfo
+.env
+.env.local
+.env*.local
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.log
+plan.json
+next-env.d.ts
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+crash.log
+.workspace/
+
+# orun per-job staged workspaces and object-model caches.
+**/.orun/runs/
+**/.orun/
+
+# apps/{app,web,api}/wrangler.jsonc are NOT ignored: each is committed as the
+# fixture render of its wrangler.template.jsonc, because the deploy lane checks
+# the config exists before it builds (and re-renders it for its environment in
+# the build).

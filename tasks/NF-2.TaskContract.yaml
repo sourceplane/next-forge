@@ -1,0 +1,17 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: NF-2
+  title: "The apps on Workers"
+spec:
+  goal: apps/app, apps/web and apps/api run on Cloudflare Workers through OpenNext with the upstream packages, and serve with no SaaS key set
+  affects:
+    - apps
+    - packages
+    - tests
+    - pnpm-lock.yaml
+  doneWhen:
+    - pnpm wire:fixture, typecheck, lint, test and build are green
+    - each Worker's wrangler deploy --dry-run is under 3 MiB compressed
+    - wrangler dev serves the app, the marketing site and the API with no SaaS key set
+  gates: []
