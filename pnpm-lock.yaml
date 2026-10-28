@@ -582,6 +582,21 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  packages/db:
+    devDependencies:
+      '@app/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@app/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      '@types/node':
+        specifier: 25.3.5
+        version: 25.3.5
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   packages/design-system:
     dependencies:
       '@hookform/resolvers':
@@ -1206,6 +1221,30 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.13)(@types/node@25.3.5)(jiti@2.7.0)(lightningcss@1.31.1)(terser@5.36.0)(yaml@2.9.1)
 
+  tests/db:
+    devDependencies:
+      '@app/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@app/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint
+      '@app/tsconfig':
+        specifier: workspace:*
+        version: link:../../tooling/tsconfig
+      '@electric-sql/pglite':
+        specifier: 0.5.8
+        version: 0.5.8
+      '@types/node':
+        specifier: 25.3.5
+        version: 25.3.5
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@25.3.5)(jiti@2.7.0)(lightningcss@1.31.1)(terser@5.36.0)(yaml@2.9.1)
+
   tests/web:
     devDependencies:
       '@app/eslint-config':
@@ -1777,6 +1816,9 @@ packages:
 
   '@egjs/list-differ@1.0.1':
     resolution: {integrity: sha512-OTFTDQcWS+1ZREOdCWuk5hCBgYO4OsD30lXcOCyVOAjXMhgL5rBRDnt/otb6Nz8CzU0L/igdcaQBDLWc4t9gvg==}
+
+  '@electric-sql/pglite@0.5.8':
+    resolution: {integrity: sha512-n9tsbUOhwx2epK1V0ZG9Ar4SHWUju04dhmzZXiSBXwBoleOvIfals33NAaWgagQVAL4Rbvx/Ptsu3P+pA09f6Q==}
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -8838,6 +8880,8 @@ snapshots:
   '@egjs/component@3.0.5': {}
 
   '@egjs/list-differ@1.0.1': {}
+
+  '@electric-sql/pglite@0.5.8': {}
 
   '@emnapi/core@1.10.0':
     dependencies:

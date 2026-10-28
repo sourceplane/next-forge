@@ -21,6 +21,39 @@ spec:
     inputs:
       - packages/**
       - pnpm-lock.yaml
+  # INFRA BEFORE APP, ENFORCED ON MAIN. A merge converges the whole product in
+  # one run: the Supabase project, the Hyperdrive config over it and the R2
+  # bucket, then the migrations, then this Worker. Its build renders the
+  # Hyperdrive id and the bucket name from the wiring documents those roots
+  # lease-publish, and its pages read the migrated table; a job resolves its
+  # secrets when it STARTS, so it waits on all three, `mode: enforced`. A pull
+  # request deploys nothing, so nothing on one waits: advisory there.
+  dependsOn:
+    - component: cloudflare-hyperdrive
+      mode: enforced
+      modeRules:
+        - mode: advisory
+          when:
+            triggerRef: github-pull-request
+    - component: cloudflare-r2
+      mode: enforced
+      modeRules:
+        - mode: advisory
+          when:
+            triggerRef: github-pull-request
+    - component: db-migrate
+      mode: enforced
+      modeRules:
+        - mode: advisory
+          when:
+            triggerRef: github-pull-request
+  # The wiring documents those roots lease-publish, one per deployed
+  # environment; tooling/wire/live.mjs picks this job's.
+  secretEnv:
+    WIRING_CLOUDFLARE_HYPERDRIVE_STAGE: "secret://next-forge/next-forge/stage/WIRING_CLOUDFLARE_HYPERDRIVE"
+    WIRING_CLOUDFLARE_HYPERDRIVE_PROD: "secret://next-forge/next-forge/prod/WIRING_CLOUDFLARE_HYPERDRIVE"
+    WIRING_CLOUDFLARE_R2_STAGE: "secret://next-forge/next-forge/stage/WIRING_CLOUDFLARE_R2"
+    WIRING_CLOUDFLARE_R2_PROD: "secret://next-forge/next-forge/prod/WIRING_CLOUDFLARE_R2"
   # Every SaaS the template wires is OPTIONAL, an Orun secret per environment
   # that the product's owner stores when they sign up (README, "Connecting a
   # service"). Best-effort, wire-now-seed-later: a key nobody has stored is

@@ -21,6 +21,28 @@ spec:
     inputs:
       - packages/**
       - pnpm-lock.yaml
+  # INFRA BEFORE APP, ENFORCED ON MAIN: the Hyperdrive config its build renders
+  # the id of, and the migrations its keep-alive writes into, before this
+  # Worker deploys (a job resolves its secrets when it STARTS). Advisory on a
+  # pull request, which deploys nothing.
+  dependsOn:
+    - component: cloudflare-hyperdrive
+      mode: enforced
+      modeRules:
+        - mode: advisory
+          when:
+            triggerRef: github-pull-request
+    - component: db-migrate
+      mode: enforced
+      modeRules:
+        - mode: advisory
+          when:
+            triggerRef: github-pull-request
+  # The wiring documents those roots lease-publish, one per deployed
+  # environment; tooling/wire/live.mjs picks this job's.
+  secretEnv:
+    WIRING_CLOUDFLARE_HYPERDRIVE_STAGE: "secret://next-forge/next-forge/stage/WIRING_CLOUDFLARE_HYPERDRIVE"
+    WIRING_CLOUDFLARE_HYPERDRIVE_PROD: "secret://next-forge/next-forge/prod/WIRING_CLOUDFLARE_HYPERDRIVE"
   # Every SaaS the template wires is OPTIONAL, an Orun secret per environment
   # that the product's owner stores when they sign up (README, "Connecting a
   # service"). Best-effort, wire-now-seed-later: a key nobody has stored is
