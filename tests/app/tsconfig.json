@@ -1,0 +1,21 @@
+{
+  "extends": "../../tooling/tsconfig/web.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "types": ["node"],
+    // The suites import the app's own modules and the @repo packages, which
+    // are written to apps/app/tsconfig.json's rules, not the stricter base —
+    // match the app for what is pulled in.
+    "noUncheckedIndexedAccess": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@/*": ["../../apps/app/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../../apps/app/cloudflare-env.d.ts"]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@repo/auth",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^7.0.1",
+    "@clerk/themes": "^2.4.57",
+    "@t3-oss/env-nextjs": "^0.13.10",
+    "next-themes": "^0.4.6",
+    "react": "19.2.4",
+    "server-only": "^0.0.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "25.3.5",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "^5.9.3",
+    "@app/eslint-config": "workspace:*",
+    "eslint": "^9.27.0",
+    "next": "16.4.3"
+  }
+}

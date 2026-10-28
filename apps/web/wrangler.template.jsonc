@@ -1,0 +1,32 @@
+// The source of wrangler.jsonc, which tooling/wire renders from it: from
+// wiring.fixture.json for local work (`pnpm run wire:fixture`, committed as
+// that render), and on every Orun lane from the wiring document the
+// `cloudflare-kv` Terraform root lease-publishes (WIRING_CLOUDFLARE_KV_<ENV>)
+// — dev, which no root applies to, from the fixture (component.yaml's
+// buildCommand). Edit this file, never wrangler.jsonc. The workers-assets
+// composition deploys one environment per job with no wrangler `--env`, so
+// `__ENV__` names the environment this is rendered for.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "next-forge-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Workers Logs: where upstream's Sentry and BetterStack logging went
+  // (@repo/observability).
+  "observability": { "enabled": true },
+  // The contact form's rate limit (@repo/rate-limit) — Upstash Redis upstream.
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMIT",
+      "id": "@@wiring(cloudflare-kv/__ENV__:app_kv_id)@@"
+    }
+  ]
+  // Secrets are never vars. BaseHub's token, Resend's, Arcjet's, PostHog,
+  // Sentry and BetterStack are optional: Orun secrets the deploy hands to
+  // this Worker (component.yaml). Locally, .dev.vars.
+}

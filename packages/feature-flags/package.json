@@ -1,0 +1,29 @@
+{
+  "name": "@repo/feature-flags",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@repo/analytics": "workspace:*",
+    "@repo/auth": "workspace:*",
+    "@t3-oss/env-nextjs": "^0.13.10",
+    "flags": "^4.0.3",
+    "react": "19.2.4",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "next": ">=16.4.1"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "25.3.5",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "^5.9.3",
+    "@app/eslint-config": "workspace:*",
+    "eslint": "^9.27.0"
+  }
+}

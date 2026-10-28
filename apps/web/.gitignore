@@ -1,0 +1,4 @@
+# local state wrangler and the Cloudflare adapter write
+.wrangler/
+.open-next/
+.dev.vars

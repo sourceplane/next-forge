@@ -1,0 +1,27 @@
+// GENERATED from wrangler.template.jsonc by tooling/wire — edit the
+// template, not this file. The committed copy is the fixture render
+// (`pnpm run wire:fixture`); every Orun lane renders its own environment.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "next-forge-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Workers Logs: where upstream's Sentry and BetterStack logging went
+  // (@repo/observability).
+  "observability": { "enabled": true },
+  // The contact form's rate limit (@repo/rate-limit) — Upstash Redis upstream.
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMIT",
+      "id": "00000000000000000000000000000001"
+    }
+  ]
+  // Secrets are never vars. BaseHub's token, Resend's, Arcjet's, PostHog,
+  // Sentry and BetterStack are optional: Orun secrets the deploy hands to
+  // this Worker (component.yaml). Locally, .dev.vars.
+}

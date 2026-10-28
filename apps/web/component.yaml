@@ -1,0 +1,110 @@
+apiVersion: sourceplane.io/v1
+kind: Component
+metadata:
+  name: web
+  description: The marketing site — home, pricing, blog, legal pages and the contact form, in six languages (Next.js on Cloudflare Workers + Static Assets via @opennextjs/cloudflare, per environment)
+spec:
+  type: cloudflare-workers-assets-turbo
+  lifecycle: production
+  owner: platform
+  # `product`, not `web`: a domain and a component share one name space in the
+  # catalog, and a domain named after a component hides it.
+  domain: product
+  path: apps/web
+  # Its own lane per environment: the Next.js build is the longest job in the
+  # plan, and a shared lane would wait on it.
+  lane: isolated
+  # THE PACKAGES IT IS BUILT FROM. The app compiles the `@repo/*` packages
+  # into its Worker, so a change to any of them, or to the lockfile, re-plans
+  # it: they belong to no component of their own.
+  change:
+    inputs:
+      - packages/**
+      - pnpm-lock.yaml
+  # Every SaaS the template wires is OPTIONAL, an Orun secret per environment
+  # that the product's owner stores when they sign up (README, "Connecting a
+  # service"). Best-effort, wire-now-seed-later: a key nobody has stored is
+  # skipped when the job resolves its secrets (no env var, no failure), and
+  # the Worker serves without it, saying on the page what to connect.
+  optionalSecretEnv:
+    # Public, inlined into the bundle at build time (NEXT_PUBLIC_).
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "secret://next-forge/next-forge/{{ .environment }}/NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+    NEXT_PUBLIC_POSTHOG_KEY: "secret://next-forge/next-forge/{{ .environment }}/NEXT_PUBLIC_POSTHOG_KEY"
+    NEXT_PUBLIC_POSTHOG_HOST: "secret://next-forge/next-forge/{{ .environment }}/NEXT_PUBLIC_POSTHOG_HOST"
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: "secret://next-forge/next-forge/{{ .environment }}/NEXT_PUBLIC_GA_MEASUREMENT_ID"
+    NEXT_PUBLIC_SENTRY_DSN: "secret://next-forge/next-forge/{{ .environment }}/NEXT_PUBLIC_SENTRY_DSN"
+    # Server-only: kept out of the build (`env -u` below) and handed to the
+    # Worker as Worker secrets before the composition deploys it.
+    CLERK_SECRET_KEY: "secret://next-forge/next-forge/{{ .environment }}/CLERK_SECRET_KEY"
+    BASEHUB_TOKEN: "secret://next-forge/next-forge/{{ .environment }}/BASEHUB_TOKEN"
+    RESEND_TOKEN: "secret://next-forge/next-forge/{{ .environment }}/RESEND_TOKEN"
+    RESEND_FROM: "secret://next-forge/next-forge/{{ .environment }}/RESEND_FROM"
+    BETTERSTACK_API_KEY: "secret://next-forge/next-forge/{{ .environment }}/BETTERSTACK_API_KEY"
+    BETTERSTACK_URL: "secret://next-forge/next-forge/{{ .environment }}/BETTERSTACK_URL"
+    FLAGS_SECRET: "secret://next-forge/next-forge/{{ .environment }}/FLAGS_SECRET"
+  subscribe:
+    environments:
+      - name: dev
+        profile: verify
+      - name: stage
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+      - name: prod
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+  parameters:
+    nodeVersion: "22"
+    pnpmVersion: "10.12.1"
+
+    workspaceDir: ../..
+    appDir: .
+
+    turboFilter: "@app/web"
+    wranglerConfig: wrangler.jsonc
+
+    # @opennextjs/cloudflare emits a Worker entrypoint plus a static-assets
+    # directory bound via ASSETS — both deploy in one `wrangler deploy`.
+    workerEntrypoint: .open-next/worker.js
+    assetsDir: .open-next/assets
+
+    # Per-env worker name: next-forge-web-{dev,stage,prod}.
+    workerName: next-forge-web
+    environmentAwareWorkerName: true
+
+    # The account's workers.dev subdomain; exported to the smoke step as
+    # ${WORKERS_DEV_SUBDOMAIN} and used to build ${DEPLOYED_URL}.
+    workersDevSubdomain: your-workers-subdomain
+
+    installCommand: pnpm install --frozen-lockfile
+    # Render this environment's wrangler config, then build, then hand the
+    # Worker its secrets. Stage and prod render from the wiring documents
+    # their infra applies published (secretEnv, resolved before the job's
+    # first step); dev, which no root applies to and which only verifies,
+    # renders from the committed fixture. The build is given the three
+    # Workers' origins for this environment (the NEXT_PUBLIC_*_URL each app
+    # links the others by; APP_URL, WEB_URL, API_URL override them for a
+    # custom domain) and none of the server secrets; then each server secret
+    # the environment has goes to the Worker with `wrangler secret bulk`
+    # (tooling/wire/worker-secrets.mjs, the values over stdin). Only the deploy
+    # lane holds a Cloudflare credential, so a verify lane builds the same and
+    # pushes nothing.
+    buildCommand: node ../../tooling/wire/live.mjs --template wrangler.template.jsonc --out wrangler.jsonc --components cloudflare-kv --env "${ORUN_ENVIRONMENT}" --fixture wiring.fixture.json --fixture-envs dev && env -u CLERK_SECRET_KEY -u BASEHUB_TOKEN -u RESEND_TOKEN -u RESEND_FROM -u BETTERSTACK_API_KEY -u BETTERSTACK_URL -u FLAGS_SECRET NEXT_PUBLIC_APP_URL="${APP_URL:-https://next-forge-app-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" NEXT_PUBLIC_WEB_URL="${WEB_URL:-https://next-forge-web-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" NEXT_PUBLIC_API_URL="${API_URL:-https://next-forge-api-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" pnpm exec turbo run build --filter=@app/web && node ../../tooling/wire/worker-secrets.mjs --secret CLERK_SECRET_KEY --secret BASEHUB_TOKEN --secret RESEND_TOKEN --secret RESEND_FROM --secret BETTERSTACK_API_KEY --secret BETTERSTACK_URL --secret FLAGS_SECRET --worker "next-forge-web-${ORUN_ENVIRONMENT}" --config wrangler.jsonc
+
+    # Smoke: the home page renders to its end (`</html>` — a render that
+    # throws partway through a streamed page still sent a 200), and
+    # /api/health answers ok — which only this Worker can, by reading its
+    # RATE_LIMIT namespace — whether or not BaseHub or Resend is connected.
+    # Read-only. Each response is buffered before grep so an early match
+    # cannot SIGPIPE curl.
+    smokeCommand: "html=$(curl -sfL \"${DEPLOYED_URL}/\") && echo \"${html}\" | grep -q '</html>' && health=$(curl -sf \"${DEPLOYED_URL}/api/health\") && echo \"${health}\" | grep -q '\"ok\":true'"
+  labels:
+    team: platform
+    layer: delivery
+    surface: web
+    runtime: cloudflare

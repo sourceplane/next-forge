@@ -1,0 +1,37 @@
+// GENERATED from wrangler.template.jsonc by tooling/wire — edit the
+// template, not this file. The committed copy is the fixture render
+// (`pnpm run wire:fixture`); every Orun lane renders its own environment.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "next-forge-api",
+  // The custom entry: the fetch handler @opennextjs/cloudflare generates plus
+  // the `scheduled` handler the Cron Trigger calls (worker.ts).
+  "main": "worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Workers Logs: where upstream's Sentry and BetterStack logging went
+  // (@repo/observability).
+  "observability": { "enabled": true },
+  // Upstream's vercel.json cron, daily at midnight UTC: /cron/keep-alive
+  // writes and deletes a row, so a Supabase free project (which pauses after
+  // a week idle, as Neon's did) stays awake. One trigger per Worker — two for
+  // stage and prod — fits Workers Free's five per account.
+  "triggers": {
+    "crons": ["0 0 * * *"]
+  },
+  // The Supabase project's Postgres, fronted by Hyperdrive (@repo/database).
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "00000000000000000000000000000001",
+      "localConnectionString": "postgres://postgres:postgres@localhost:54322/postgres"
+    }
+  ]
+  // Secrets are never vars. Stripe's and Clerk's webhook secrets, Stripe's
+  // key, PostHog, Sentry and BetterStack are optional: Orun secrets the
+  // deploy hands to this Worker (component.yaml). Locally, .dev.vars.
+}
