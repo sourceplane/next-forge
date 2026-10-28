@@ -15,7 +15,9 @@ export const workspacePackages = (appDir: string): string[] => {
         const manifest = JSON.parse(
           readFileSync(path.join(root, entry.name, "package.json"), "utf8")
         ) as { name?: string };
-        return manifest.name ? [manifest.name] : [];
+        // The upstream packages, which the apps import; not this repository's
+        // own (`@app/db`, the migration runner, is no app's dependency).
+        return manifest.name?.startsWith("@repo/") ? [manifest.name] : [];
       } catch {
         return [];
       }
