@@ -1,0 +1,11 @@
+// The bindings wrangler.jsonc declares, as the Worker (and `next dev` through
+// the platform proxy) sees them. Hand-typed rather than
+// `@cloudflare/workers-types` as a global, whose `Body.json<T>()` merges ahead
+// of lib.dom's and breaks untyped `res.json()` calls. The packages that read
+// a binding (@repo/database, @repo/storage, @repo/ai) type their own slice.
+interface CloudflareEnv {
+  HYPERDRIVE: { connectionString: string };
+  STORAGE: unknown;
+  AI: unknown;
+  ASSETS: { fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> };
+}

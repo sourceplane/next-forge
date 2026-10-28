@@ -1,0 +1,29 @@
+apiVersion: sourceplane.io/v1
+kind: Component
+metadata:
+  name: app-tests
+  description: The app's and its packages' tests (Clerk's sample mode, the database client over Hyperdrive, storage over R2, the health check, the wrangler config), run on every pull request
+spec:
+  type: turbo-package
+  lifecycle: production
+  owner: platform
+  domain: tests
+  # The suites import the app and the packages it is built from.
+  change:
+    inputs:
+      - apps/app/**
+      - packages/**
+      - pnpm-lock.yaml
+  subscribe:
+    environments:
+      - name: dev
+        profile: quick-check
+  parameters:
+    nodeVersion: "22"
+    pnpmVersion: "10.12.1"
+    buildCommand: pnpm exec turbo run build --filter=./
+    typecheckCommand: pnpm exec turbo run typecheck --filter=./
+    preBuildCommand: pnpm exec turbo run test --filter=./
+  labels:
+    team: platform
+    layer: test

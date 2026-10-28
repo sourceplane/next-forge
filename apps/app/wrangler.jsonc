@@ -1,0 +1,41 @@
+// GENERATED from wrangler.template.jsonc by tooling/wire — edit the
+// template, not this file. The committed copy is the fixture render
+// (`pnpm run wire:fixture`); every Orun lane renders its own environment.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "next-forge-app",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Workers Logs: where upstream's Sentry and BetterStack logging went
+  // (@repo/observability).
+  "observability": { "enabled": true },
+  // The Supabase project's Postgres, fronted by Hyperdrive: @repo/database
+  // opens a postgres.js client on env.HYPERDRIVE.connectionString per call
+  // (upstream: Prisma on Neon). Locally — `wrangler dev`, `next dev` — the
+  // binding points at the Supabase CLI's database (`supabase start`).
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "00000000000000000000000000000001",
+      "localConnectionString": "postgres://postgres:postgres@localhost:54322/postgres"
+    }
+  ],
+  // @repo/storage — Vercel Blob upstream.
+  "r2_buckets": [
+    {
+      "binding": "STORAGE",
+      "bucket_name": "stg-next-forge-stage"
+    }
+  ],
+  // @repo/ai's default models: Workers AI, no key.
+  "ai": { "binding": "AI" }
+  // Secrets are never vars. Every SaaS key (Clerk, Liveblocks, Knock, Svix,
+  // Arcjet, PostHog, Sentry, BetterStack, OpenAI) is optional: an Orun secret
+  // per environment that the deploy hands to this Worker as a Worker secret
+  // (component.yaml). Locally they go in .dev.vars.
+}

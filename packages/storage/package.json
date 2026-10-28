@@ -1,0 +1,19 @@
+{
+  "name": "@repo/storage",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "1.20.13",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@app/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "eslint": "^9.27.0",
+    "typescript": "^5.9.3"
+  }
+}

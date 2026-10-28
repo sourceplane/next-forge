@@ -1,0 +1,19 @@
+{
+  "name": "@repo/security",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@nosecone/next": "1.2.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "^5.9.3",
+    "@app/eslint-config": "workspace:*",
+    "eslint": "^9.27.0"
+  }
+}

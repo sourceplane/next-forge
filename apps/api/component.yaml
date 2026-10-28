@@ -1,0 +1,107 @@
+apiVersion: sourceplane.io/v1
+kind: Component
+metadata:
+  name: api
+  description: The API — Stripe and Clerk webhooks, health, and the daily keep-alive on a Cron Trigger (Next.js route handlers on Cloudflare Workers via @opennextjs/cloudflare, per environment)
+spec:
+  type: cloudflare-workers-assets-turbo
+  lifecycle: production
+  owner: platform
+  # `product`, not `api`: a domain and a component share one name space in the
+  # catalog, and a domain named after a component hides it.
+  domain: product
+  path: apps/api
+  # Its own lane per environment: the Next.js build is the longest job in the
+  # plan, and a shared lane would wait on it.
+  lane: isolated
+  # THE PACKAGES IT IS BUILT FROM. The app compiles the `@repo/*` packages
+  # into its Worker, so a change to any of them, or to the lockfile, re-plans
+  # it: they belong to no component of their own.
+  change:
+    inputs:
+      - packages/**
+      - pnpm-lock.yaml
+  # Every SaaS the template wires is OPTIONAL, an Orun secret per environment
+  # that the product's owner stores when they sign up (README, "Connecting a
+  # service"). Best-effort, wire-now-seed-later: a key nobody has stored is
+  # skipped when the job resolves its secrets (no env var, no failure), and
+  # the Worker serves without it, saying on the page what to connect.
+  optionalSecretEnv:
+    # Public, inlined into the bundle at build time (NEXT_PUBLIC_).
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "secret://next-forge/next-forge/{{ .environment }}/NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+    NEXT_PUBLIC_POSTHOG_KEY: "secret://next-forge/next-forge/{{ .environment }}/NEXT_PUBLIC_POSTHOG_KEY"
+    NEXT_PUBLIC_POSTHOG_HOST: "secret://next-forge/next-forge/{{ .environment }}/NEXT_PUBLIC_POSTHOG_HOST"
+    NEXT_PUBLIC_SENTRY_DSN: "secret://next-forge/next-forge/{{ .environment }}/NEXT_PUBLIC_SENTRY_DSN"
+    # Server-only: kept out of the build (`env -u` below) and handed to the
+    # Worker as Worker secrets before the composition deploys it.
+    CLERK_SECRET_KEY: "secret://next-forge/next-forge/{{ .environment }}/CLERK_SECRET_KEY"
+    CLERK_WEBHOOK_SECRET: "secret://next-forge/next-forge/{{ .environment }}/CLERK_WEBHOOK_SECRET"
+    STRIPE_SECRET_KEY: "secret://next-forge/next-forge/{{ .environment }}/STRIPE_SECRET_KEY"
+    STRIPE_WEBHOOK_SECRET: "secret://next-forge/next-forge/{{ .environment }}/STRIPE_WEBHOOK_SECRET"
+    BETTERSTACK_API_KEY: "secret://next-forge/next-forge/{{ .environment }}/BETTERSTACK_API_KEY"
+    BETTERSTACK_URL: "secret://next-forge/next-forge/{{ .environment }}/BETTERSTACK_URL"
+  subscribe:
+    environments:
+      - name: dev
+        profile: verify
+      - name: stage
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+      - name: prod
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+  parameters:
+    nodeVersion: "22"
+    pnpmVersion: "10.12.1"
+
+    workspaceDir: ../..
+    appDir: .
+
+    turboFilter: "@app/api"
+    wranglerConfig: wrangler.jsonc
+
+    # @opennextjs/cloudflare emits a Worker entrypoint plus a static-assets
+    # directory bound via ASSETS — both deploy in one `wrangler deploy`. The entry here is the custom worker (fetch from the generated worker + the Cron Trigger's scheduled handler); wrangler bundles the generated one into it.
+    workerEntrypoint: worker.ts
+    assetsDir: .open-next/assets
+
+    # Per-env worker name: next-forge-api-{dev,stage,prod}.
+    workerName: next-forge-api
+    environmentAwareWorkerName: true
+
+    # The account's workers.dev subdomain; exported to the smoke step as
+    # ${WORKERS_DEV_SUBDOMAIN} and used to build ${DEPLOYED_URL}.
+    workersDevSubdomain: your-workers-subdomain
+
+    installCommand: pnpm install --frozen-lockfile
+    # Render this environment's wrangler config, then build, then hand the
+    # Worker its secrets. Stage and prod render from the wiring documents
+    # their infra applies published (secretEnv, resolved before the job's
+    # first step); dev, which no root applies to and which only verifies,
+    # renders from the committed fixture. The build is given the three
+    # Workers' origins for this environment (the NEXT_PUBLIC_*_URL each app
+    # links the others by; APP_URL, WEB_URL, API_URL override them for a
+    # custom domain) and none of the server secrets; then each server secret
+    # the environment has goes to the Worker with `wrangler secret bulk`
+    # (tooling/wire/worker-secrets.mjs, the values over stdin). Only the deploy
+    # lane holds a Cloudflare credential, so a verify lane builds the same and
+    # pushes nothing.
+    buildCommand: node ../../tooling/wire/live.mjs --template wrangler.template.jsonc --out wrangler.jsonc --components cloudflare-hyperdrive --env "${ORUN_ENVIRONMENT}" --fixture wiring.fixture.json --fixture-envs dev && env -u CLERK_SECRET_KEY -u CLERK_WEBHOOK_SECRET -u STRIPE_SECRET_KEY -u STRIPE_WEBHOOK_SECRET -u BETTERSTACK_API_KEY -u BETTERSTACK_URL NEXT_PUBLIC_APP_URL="${APP_URL:-https://next-forge-app-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" NEXT_PUBLIC_WEB_URL="${WEB_URL:-https://next-forge-web-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" NEXT_PUBLIC_API_URL="${API_URL:-https://next-forge-api-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" pnpm exec turbo run build --filter=@app/api && node ../../tooling/wire/worker-secrets.mjs --secret CLERK_SECRET_KEY --secret CLERK_WEBHOOK_SECRET --secret STRIPE_SECRET_KEY --secret STRIPE_WEBHOOK_SECRET --secret BETTERSTACK_API_KEY --secret BETTERSTACK_URL --worker "next-forge-api-${ORUN_ENVIRONMENT}" --config wrangler.jsonc
+
+    # Smoke: /health answers OK, and /cron/keep-alive — the route the daily
+    # Cron Trigger runs — answers OK, which only this Worker can, by writing
+    # one row into the migrated "Page" table through its HYPERDRIVE binding
+    # and deleting the same row: what the trigger does every day, leaving
+    # nothing behind.
+    smokeCommand: "test \"$(curl -sf \"${DEPLOYED_URL}/health\")\" = OK && test \"$(curl -sf \"${DEPLOYED_URL}/cron/keep-alive\")\" = OK"
+  labels:
+    team: platform
+    layer: delivery
+    surface: api
+    runtime: cloudflare
