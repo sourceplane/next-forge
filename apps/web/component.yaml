@@ -78,6 +78,37 @@ spec:
           - profile: deploy
             when:
               triggerRef: github-push-main
+  # How the site runs itself for orun.work's live Preview tab
+  # (saas-parallel-baselining PB4): `orun preview` starts this, and a coding
+  # session keeps it running while it works, so the person watches it change
+  # as it is built. The dev server binds the box's loopback only, on a fixed
+  # port, and installs first, so a checkout the session has not installed yet
+  # still comes up.
+  # The marketing site alone, the page each environment's `url` opens
+  # (intent.yaml): the app (the dashboard behind Clerk, over the database) and
+  # the API do not start, nor does any database. Only this app's packages are
+  # installed (`--filter ...`); `next` runs itself, not `pnpm exec next`, with
+  # a 1 GiB heap cap; its KV binding is wrangler's local one (next.config.ts).
+  # The three apps' links are stage's, from the committed `.env.production` a
+  # local `next build` reads, which `next dev` does not load on its own. The
+  # contact form's rate limit is local, and every optional service (Clerk,
+  # BaseHub, Resend, PostHog) stays unconnected, as on a fresh deploy.
+  # `-H localhost`, not 127.0.0.1: every page is a proxy.ts locale rewrite
+  # (`/` → `/en`), and Next names its own URL `localhost`, so bound to
+  # 127.0.0.1 it takes its own rewrite for an external one and proxies it
+  # (a 307 loop, or a 500 over TLS behind the gateway's x-forwarded-proto).
+  # `--dns-result-order=ipv4first` keeps `localhost` on 127.0.0.1, never ::1.
+  preview:
+    run:
+      - sh
+      - -c
+      - pnpm install --frozen-lockfile --prefer-offline --filter "@app/web..." && set -a && . ./.env.production && set +a && exec node_modules/.bin/next dev -H localhost -p 3001
+    port: 3001
+    path: /
+    env:
+      NODE_OPTIONS: --max-old-space-size=1024 --dns-result-order=ipv4first
+      NEXT_TELEMETRY_DISABLED: "1"
+      WRANGLER_SEND_METRICS: "false"
   parameters:
     nodeVersion: "22"
     pnpmVersion: "10.12.1"
